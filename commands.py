@@ -1,11 +1,11 @@
 import configparser
+from multiprocessing.connection import wait
 import random
-import smtplib
 import sys
-
+import datetime
 import wikipedia
+import datetime
 from pygame import mixer
-
 from actions import open_url, search, speak
 
 config = configparser.ConfigParser()  # if exists loads library.
@@ -25,10 +25,10 @@ def command_wikipedia(debug, query):
 
 def command_whatsup():
     st_msgs = [
-        "Just doing my thing!",
-        "I am fine!",
-        "Nice!",
-        "I am nice and full of energy",
+        "I was up late clearing beta bugs out of our servers!",
+        "All systems are running optimally",
+        "Living the dream sir",
+        "Greetings and salutations sir",
     ]
     speak(random.choice(st_msgs))
 
@@ -42,8 +42,8 @@ def command_open(query, popular_websites, debug, search_engine, take_command):
             print(f"Unknown website: {website}")
         else:
             pass
-        speak(f"Sorry, i don't know the website {website}")
-        speak(f"¿Do you want me to search {website} in the web?")
+        speak(f"add {website} to list please")
+        speak(f"¿Shall I search {website} ?")
         if take_command() == "yes":
             search(website, search_engine)
         else:
@@ -55,31 +55,8 @@ def command_search(query, search_engine):
     search(search_query, search_engine)
 
 
-def command_mail(take_command):
-    speak("Who is the recipient? ")
-    recipient = take_command()
-
-    try:
-        speak("What should I say? ")
-        content = take_command()
-
-        email = config['EMAIL']
-        server = smtplib.SMTP(email['server'], email['port'])
-        server.ehlo()
-        server.starttls()
-        server.login(email['username'], email['password'])
-        server.sendmail(email['username'], recipient, content)
-        server.close()
-        speak("Email sent!")
-    except Exception:
-        speak("Sorry Sir!")
-        speak("I am unable to send your message at this moment!")
-
-
 def command_nothing():
     speak("okay")
-    speak("Bye Sir, have a good day.")
-    sys.exit()
 
 
 def command_hello():
@@ -90,26 +67,14 @@ def command_bye():
     speak("Bye Sir, have a good day.")
     sys.exit()
 
+def command_date():
+    speak(f"{datetime.datetime.now():%A, %B %d, %Y}")
 
 def command_play_music():
-    try:
-        music_folder = config['DEFAULT']['musicPath']
-        music = ("music1", "music2", "music3", "music4")
-        random_music = music_folder + random.choice(music) + ".mp3"
-        speak("Playing your request")
-        mixer.music.load(random_music)
-        mixer.music.play()
-    except Exception as e:
-        speak(e)
+    open_url("https://www.youtube.com/watch?v=eg_V56BUmh0")
 
 
-def command_pause_music():
-    mixer.music.pause()
 
 
-def command_stop_music():
-    mixer.music.stop()
 
 
-def command_unpause_music():
-    mixer.music.unpause()

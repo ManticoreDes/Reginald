@@ -1,6 +1,6 @@
-import configparser  # isort: skip
+import configparser
+from datetime import datetime  # isort: skip
 import os  # isort: skip
-
 import gui  # isort: skip
 import speech_recognition as sr  # isort: skip
 from actions import (  # isort: skip
@@ -10,21 +10,18 @@ from actions import (  # isort: skip
     search_engine_selector,
     set_gui_speak,
     speak,
-    wish_me
+    wish_me,
 )
 from commands import (  # isort: skip
     command_bye,
     command_hello,
-    command_mail,
     command_nothing,
     command_open,
-    command_pause_music,
     command_play_music,
     command_search,
-    command_stop_music,
-    command_unpause_music,
     command_whatsup,
-    command_wikipedia
+    command_wikipedia,
+    command_date,
 )
 
 popular_websites = {
@@ -33,6 +30,10 @@ popular_websites = {
     "wikipedia": "https://www.wikipedia.org",
     "amazon": "https://www.amazon.com",
     "github": "https://www.github.com",
+    "netflix": "https://www.netflix.com/browse",
+    "gmail": "https://mail.google.com/mail/u/0/#inbox",
+    "huntington": "https://www.huntington.com",
+    "calender": "https://calendar.google.com/",
 }
 
 
@@ -43,15 +44,13 @@ def main(search_engine, take_command, debug):
         # logic for executing commands without arguments
         phrases = {
             "what's up": command_whatsup,
+            "what's todays date": command_date,
             "nothing": command_nothing,
             "abort": command_nothing,
             "stop": command_nothing,
             "hello": command_hello,
             "bye": command_bye,
             "play music": command_play_music,
-            "unpause": command_unpause_music,
-            "pause music": command_pause_music,
-            "stop music": command_stop_music
         }
         for phrase, command in phrases.items():
             if phrase in query:
@@ -73,8 +72,11 @@ def main(search_engine, take_command, debug):
         elif "search" in query:
             command_search(query, search_engine)
 
-        elif "mail" in query:
-            command_mail(take_command)
+        elif "date" in query:
+            speak(f"{datetime.now():%A, %B %d, %Y}")
+
+        elif "time" in query:
+            speak(f"{datetime.now():%I %M %p}")
 
         elif "change rate" in query:
             change_rate(query, take_command)
@@ -133,7 +135,7 @@ def run():
 
             return query
 
-    speak(text="Initializing Jarvis....")
+    speak(text="Initializing Reginald....")
     wish_me(master)
     main(search_engine, take_command, debug)
 

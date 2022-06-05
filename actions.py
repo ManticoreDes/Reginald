@@ -9,10 +9,6 @@ import requests
 def search_engine_selector(config):
     if config['DEFAULT']['search_engine'] == 'Google':
         return "https://www.google.com"
-    elif config['DEFAULT']['search_engine'] == 'Bing':
-        return "https://www.bing.com"
-    elif config['DEFAULT']['search_engine'] == 'DuckDuckGo':
-        return "https://www.duckduckgo.com"
     elif config['DEFAULT']['search_engine'] == 'Youtube':
         return "https://www.youtube.com"
     else:
