@@ -1,8 +1,13 @@
 import configparser
 from datetime import datetime  # isort: skip
 import os  # isort: skip
+import smtplib  # isort: skip
 import gui  # isort: skip
 import speech_recognition as sr  # isort: skip
+import subprocess
+import wolframalpha
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # hides terminal message on boot
+
 from actions import (  # isort: skip
     change_rate,
     change_voice,
@@ -12,6 +17,7 @@ from actions import (  # isort: skip
     speak,
     wish_me,
 )
+
 from commands import (  # isort: skip
     command_bye,
     command_hello,
@@ -22,6 +28,8 @@ from commands import (  # isort: skip
     command_whatsup,
     command_wikipedia,
     command_date,
+    command_launch,
+    # command_exit,
 )
 
 popular_websites = {
@@ -33,32 +41,36 @@ popular_websites = {
     "netflix": "https://www.netflix.com/browse",
     "gmail": "https://mail.google.com/mail/u/0/#inbox",
     "huntington": "https://www.huntington.com",
-    "calender": "https://calendar.google.com/",
+    "calendar": "https://calendar.google.com/",
 }
-
 
 def main(search_engine, take_command, debug):
     def execute_the_command_said_by_user():
         query = take_command()
 
-        # logic for executing commands without arguments
+        # executing commands without arguments
         phrases = {
             "what's up": command_whatsup,
             "what's todays date": command_date,
-            "nothing": command_nothing,
             "abort": command_nothing,
             "stop": command_nothing,
             "hello": command_hello,
+            "goodbye": command_bye,
             "bye": command_bye,
+            "shutdown": command_bye,
+            "load up league": command_launch,
+
+            # "exit game": command_exit,
             "play music": command_play_music,
         }
         for phrase, command in phrases.items():
             if phrase in query:
                 command()
 
-        # logic for executing commands with arguments
-        if "wikipedia" in query:
-            command_wikipedia(speak, debug, query)
+# BASIC COMMANDS -->
+
+        if "Wikipedia" in query:
+            command_wikipedia(debug, query)
 
         elif "open" in query:
             command_open(
@@ -72,7 +84,7 @@ def main(search_engine, take_command, debug):
         elif "search" in query:
             command_search(query, search_engine)
 
-        elif "date" in query:
+        elif "date" in query or "day is" in query:
             speak(f"{datetime.now():%A, %B %d, %Y}")
 
         elif "time" in query:
@@ -87,12 +99,38 @@ def main(search_engine, take_command, debug):
         elif "change volume" in query.lower():
             change_volume(query, take_command)
 
-        speak("Next Command! Sir!")
+# ADVANCED COMMANDS -->
+
+        elif "calculate" in query:
+            try:
+                app_id = "W8HHEE-6AY35T3RYV"
+                client = wolframalpha.Client(app_id)
+                indx = query.lower().split().index('calculate')
+                query = query.split()[indx + 1:]
+                res = client.query(' '.join(query))
+                answer = next(res.results).text
+                print("The answer is " + answer)
+                speak("The answer is " + answer)
+            except Exception as e:
+                speak("please repeat that calculation sir")
+
+        elif "League of Legends" in query or "League" in query:
+            subprocess.call(["C:\Riot Games\League of Legends\LeagueClient.exe"])
+
+        elif "Notepad" in query:
+            subprocess.call(["C:\Program Files\Windows NT\Accessories\wordpad.exe"])
+
+# CONVERSATION -->
+
+        elif "Good Morning" in query or "Good Afternoon" in query or "what up" in query or "how are you" in query or "how's it" in query:
+            command_whatsup()
 
     gui.set_speak_command(execute_the_command_said_by_user)
     set_gui_speak(gui.speak)
     gui.mainloop()
 
+
+# RUN
 
 def run():
     master = config['DEFAULT']['master']
@@ -138,7 +176,6 @@ def run():
     speak(text="Initializing Reginald....")
     wish_me(master)
     main(search_engine, take_command, debug)
-
 
 if os.path.isfile('./config.ini'):  # Checks if config.ini exists.
     config = configparser.ConfigParser()  # if exists loads library.
