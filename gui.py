@@ -9,7 +9,7 @@ chat_listbox = tk.Listbox(master=main_frame, height=100, width=100, bg="black",
     fg="red",)
 scroll_bar = tk.Scrollbar(master=main_frame)
 
-speak_button = tk.Button(master=root, text='Input', height=100, command=lambda: None, bg="black",
+speak_button = tk.Button(master=root, text='Input', height=100, width=10, command=lambda: None, bg="black",
     fg="blue",)
 
 

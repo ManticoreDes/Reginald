@@ -1,3 +1,12 @@
+
+from __future__ import print_function
+import datetime
+import pickle
+import os.path
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+
 import configparser
 from datetime import datetime  # isort: skip
 import os  # isort: skip
@@ -26,6 +35,7 @@ from commands import (  # isort: skip
     command_play_music,
     command_search,
     command_whatsup,
+    command_wife,
     command_wikipedia,
     command_date,
     command_launch,
@@ -33,6 +43,7 @@ from commands import (  # isort: skip
 )
 
 popular_websites = {
+    "salesforce": "https://mc.login.exacttarget.com/hub-cas/login",
     "google": "https://www.google.com",
     "youtube": "https://www.youtube.com",
     "wikipedia": "https://www.wikipedia.org",
@@ -125,6 +136,9 @@ def main(search_engine, take_command, debug):
         elif "Good Morning" in query or "Good Afternoon" in query or "what up" in query or "how are you" in query or "how's it" in query:
             command_whatsup()
 
+        elif "test" in query or "Isis" in query or "wife" in query or "better half" in query or "love of my life" in query or "icey" in query:
+            command_wife()
+
     gui.set_speak_command(execute_the_command_said_by_user)
     set_gui_speak(gui.speak)
     gui.mainloop()
@@ -185,3 +199,50 @@ else:
     # if it doesn't exist it drops an error message and exits.
     print('You need a config.ini file.')
     print('Check the documentation in the Github Repository.')
+
+# CALANDER -->
+
+
+def authenticate_google():
+    """Shows basic usage of the Google Calendar API.
+    Prints the start and name of the next 10 events on the user's calendar.
+    """
+    creds = None
+    if os.path.exists('token.pickle'):
+        with open('token.pickle', 'rb') as token:
+            creds = pickle.load(token)
+
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json')
+            creds = flow.run_local_server(port=0)
+
+        with open('token.pickle', 'wb') as token:
+            pickle.dump(creds, token)
+
+    service = build('calendar', 'v3', credentials=creds)
+
+    return service
+
+
+def get_events(n, service):
+    # Call the Calendar API
+    now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
+    print(f'Getting the upcoming {n} events')
+    events_result = service.events().list(calendarId='primary', timeMin=now,
+                                        maxResults=n, singleEvents=True,
+                                        orderBy='startTime').execute()
+    events = events_result.get('items', [])
+
+    if not events:
+        print('No upcoming events found.')
+    for event in events:
+        start = event['start'].get('dateTime', event['start'].get('date'))
+        print(start, event['summary'])
+
+
+service = authenticate_google()
+get_events(2, service)
