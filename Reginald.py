@@ -1,11 +1,9 @@
 
 from __future__ import print_function
 import datetime
-import pickle
 import os.path
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
+
+import json
 
 import configparser
 from datetime import datetime  # isort: skip
@@ -15,6 +13,14 @@ import gui  # isort: skip
 import speech_recognition as sr  # isort: skip
 import subprocess
 import wolframalpha
+
+from online_ops import find_my_ip, get_random_joke, get_random_advice, get_weather_report
+import requests
+import speech_recognition as sr
+from decouple import config
+from datetime import datetime
+from random import choice
+
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # hides terminal message on boot
 
 from actions import (  # isort: skip
@@ -55,9 +61,11 @@ popular_websites = {
     "calendar": "https://calendar.google.com/",
 }
 
+
 def main(search_engine, take_command, debug):
     def execute_the_command_said_by_user():
         query = take_command()
+        
 
         # executing commands without arguments
         phrases = {
@@ -92,6 +100,32 @@ def main(search_engine, take_command, debug):
                 take_command
             )
 
+        elif 'news' in query:
+            speak("Here are the top 10 stories today boss")
+            url="https://newsapi.org/v2/top-headlines?sources=google-news&apiKey=ffd2ecc72e1c45e186a97602fc326e45"
+            news=requests.get(url).text
+            news1=json.loads(news)
+            print(news1["articles"])
+            a=news1["articles"]
+            i=1
+            for article in a:
+
+                speak(article["title"])
+                speak(f"no {i}")
+                i+=1
+
+        elif 'joke' in query:
+            speak(f"Hope you like this one sir")
+            joke = get_random_joke()
+            speak(joke)
+            print(joke)
+
+        elif "advice" in query:
+            speak(f"Well now let me think... how about this?")
+            advice = get_random_advice()
+            speak(advice)
+            print(advice)
+
         elif "search" in query:
             command_search(query, search_engine)
 
@@ -111,6 +145,16 @@ def main(search_engine, take_command, debug):
             change_volume(query, take_command)
 
 # ADVANCED COMMANDS -->
+ 
+
+        elif 'weather' in query:
+            ip_address = find_my_ip()
+            city = requests.get(f"https://ipapi.co/{ip_address}/city/").text
+            speak(f"Weather for {city}")
+            weather, temperature, feels_like = get_weather_report(city)
+            speak(f"The current temperature is {temperature}, but it feels like {feels_like}")
+            speak(f"Also, the forcast calls for {weather}")
+            print(f"Description: {weather}\nTemperature: {temperature}\nFeels like: {feels_like}")
 
         elif "calculate" in query:
             try:
@@ -199,50 +243,3 @@ else:
     # if it doesn't exist it drops an error message and exits.
     print('You need a config.ini file.')
     print('Check the documentation in the Github Repository.')
-
-# CALANDER -->
-
-
-def authenticate_google():
-    """Shows basic usage of the Google Calendar API.
-    Prints the start and name of the next 10 events on the user's calendar.
-    """
-    creds = None
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
-            creds = pickle.load(token)
-
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json')
-            creds = flow.run_local_server(port=0)
-
-        with open('token.pickle', 'wb') as token:
-            pickle.dump(creds, token)
-
-    service = build('calendar', 'v3', credentials=creds)
-
-    return service
-
-
-def get_events(n, service):
-    # Call the Calendar API
-    now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
-    print(f'Getting the upcoming {n} events')
-    events_result = service.events().list(calendarId='primary', timeMin=now,
-                                        maxResults=n, singleEvents=True,
-                                        orderBy='startTime').execute()
-    events = events_result.get('items', [])
-
-    if not events:
-        print('No upcoming events found.')
-    for event in events:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        print(start, event['summary'])
-
-
-service = authenticate_google()
-get_events(2, service)
