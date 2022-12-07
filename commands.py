@@ -41,6 +41,14 @@ def command_bye():
     speak(random.choice(st_msgs))
     sys.exit()
 
+def command_wife():
+    st_msgs = [
+        "good to see you again m'lady, you are radiant as ever",
+        "Hello m'lady ",
+        "Finally a breath of elegance in this dusty hovel",
+    ]
+    speak(random.choice(st_msgs))
+
 def command_nothing():
     speak("okay")
 

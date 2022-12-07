@@ -1,3 +1,10 @@
+
+from __future__ import print_function
+import datetime
+import os.path
+
+import json
+
 import configparser
 from datetime import datetime  # isort: skip
 import os  # isort: skip
@@ -6,6 +13,14 @@ import gui  # isort: skip
 import speech_recognition as sr  # isort: skip
 import subprocess
 import wolframalpha
+
+from online_ops import find_my_ip, get_random_joke, get_random_advice, get_weather_report
+import requests
+import speech_recognition as sr
+from decouple import config
+from datetime import datetime
+from random import choice
+
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # hides terminal message on boot
 
 from actions import (  # isort: skip
@@ -26,6 +41,7 @@ from commands import (  # isort: skip
     command_play_music,
     command_search,
     command_whatsup,
+    command_wife,
     command_wikipedia,
     command_date,
     command_launch,
@@ -33,6 +49,7 @@ from commands import (  # isort: skip
 )
 
 popular_websites = {
+    "salesforce": "https://mc.login.exacttarget.com/hub-cas/login",
     "google": "https://www.google.com",
     "youtube": "https://www.youtube.com",
     "wikipedia": "https://www.wikipedia.org",
@@ -44,9 +61,11 @@ popular_websites = {
     "calendar": "https://calendar.google.com/",
 }
 
+
 def main(search_engine, take_command, debug):
     def execute_the_command_said_by_user():
         query = take_command()
+        
 
         # executing commands without arguments
         phrases = {
@@ -81,6 +100,32 @@ def main(search_engine, take_command, debug):
                 take_command
             )
 
+        elif 'news' in query:
+            speak("Here are the top 10 stories today boss")
+            url="https://newsapi.org/v2/top-headlines?sources=google-news&apiKey=ffd2ecc72e1c45e186a97602fc326e45"
+            news=requests.get(url).text
+            news1=json.loads(news)
+            print(news1["articles"])
+            a=news1["articles"]
+            i=1
+            for article in a:
+
+                speak(article["title"])
+                speak(f"no {i}")
+                i+=1
+
+        elif 'joke' in query:
+            speak(f"Hope you like this one sir")
+            joke = get_random_joke()
+            speak(joke)
+            print(joke)
+
+        elif "advice" in query:
+            speak(f"Well now let me think... how about this?")
+            advice = get_random_advice()
+            speak(advice)
+            print(advice)
+
         elif "search" in query:
             command_search(query, search_engine)
 
@@ -100,6 +145,16 @@ def main(search_engine, take_command, debug):
             change_volume(query, take_command)
 
 # ADVANCED COMMANDS -->
+ 
+
+        elif 'weather' in query:
+            ip_address = find_my_ip()
+            city = requests.get(f"https://ipapi.co/{ip_address}/city/").text
+            speak(f"Weather for {city}")
+            weather, temperature, feels_like = get_weather_report(city)
+            speak(f"The current temperature is {temperature}, but it feels like {feels_like}")
+            speak(f"Also, the forcast calls for {weather}")
+            print(f"Description: {weather}\nTemperature: {temperature}\nFeels like: {feels_like}")
 
         elif "calculate" in query:
             try:
@@ -124,6 +179,9 @@ def main(search_engine, take_command, debug):
 
         elif "Good Morning" in query or "Good Afternoon" in query or "what up" in query or "how are you" in query or "how's it" in query:
             command_whatsup()
+
+        elif "test" in query or "Isis" in query or "wife" in query or "better half" in query or "love of my life" in query or "icey" in query:
+            command_wife()
 
     gui.set_speak_command(execute_the_command_said_by_user)
     set_gui_speak(gui.speak)

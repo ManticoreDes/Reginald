@@ -9,7 +9,7 @@ chat_listbox = tk.Listbox(master=main_frame, height=100, width=100, bg="black",
     fg="red",)
 scroll_bar = tk.Scrollbar(master=main_frame)
 
-speak_button = tk.Button(master=root, text='Input', height=100, command=lambda: None, bg="black",
+speak_button = tk.Button(master=root, text='Input', height=100, width=10, command=lambda: None, bg="black",
     fg="blue",)
 
 
@@ -29,7 +29,7 @@ chat_listbox.pack(fill=tk.Y, side=tk.RIGHT)
 scroll_bar.configure(command=chat_listbox.yview)
 chat_listbox.configure(yscrollcommand=scroll_bar.set)
 main_frame.pack(fill=tk.BOTH)
-root.geometry('400x250')
+root.geometry('600x450')
 root.minsize(400, 250)
 root.wm_title('Reginald')
 root.resizable(False, True)
